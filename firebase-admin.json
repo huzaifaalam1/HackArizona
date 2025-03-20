@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "uarizona-rewards",
+  "private_key_id": "ae11c63c64697f3eedd335b33418668cf3546dbd",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCJ3Xp29/4vxHBT\nfjrKFofm4aGqfZKCwt7XSau5/k58Nvg9BQ4YMp8Ydq9JbIOZv6sbbArUtM3uLOvN\nQG4nFo9EkPYUYSbxSIX0AF5Rj10vl2V4T4YEWFTFNhAe/0zF5haqxjGnnq4MMMQP\nPjjfsx4G+/sf4HR5MCnoxys228Q5s3w+CWpgxbWyBgREBGFO8GUaqoDqrRAfy9gv\nEWbBrPaBzCsvfaFooTjrtTquFSghQJzwJ5ilKCuOBz8eEnqaJbrmS0DGnWu7R65G\nzKKjIX2wONItwI1Jnz/L2lkXe6v0AoZpxr6vClLgqlfqoTM6Xcg6E6UfU/PCaBvr\nNHg/avRZAgMBAAECggEAAvG5Hp1OAmGLL8OvjobldBrRdwo9Fl0COueWqt9kq0zW\nB4eTtRSWE554c9r4Nh2PxYNZkxCH07q5EAyvzYnmMvkQweXcc3Hj2nTywei/Frfm\n/nP3hFQ8/mrL9IpQCDhRUTUjJ+9AzEw/6gtsIresJn4IvBxXbT2IFGT2GUyfZ8c5\n4KJba3q5IAH5aHm9V+LUKSef8BQxODNVLPWiYdnPVgV77ga6yqnzLlTYnMtfqHB/\n6TEOW8wWWHnNeyELKASCHe0wXpspIYzvC8vwXUH743QFksmyiI20+EKcY1PERlQ/\nZnCj9QFd1a/AiCbgvH7e6HMQud046bLP36PrDyKkOQKBgQC8MLTnJnbtyS+51R5+\njrMIQgrKOjAJf1LX6Ckn/10/J4DtJrjeg3NPDsFLruOtoaYUFnA+klWbPR53RlZP\nEXaA1cfYw/8IEwZAudGwpaaUWlkpuqw4IEUimOZBIRkQo6wPQ4bJqf3D37PsYwJa\n0orL9MBZlPwjgZFsoDL1C0n5+wKBgQC7ip3izz41YAoNHOQW/DPXw6pE0+A3y1Gb\nVKkBeAPZCfTYR6RYsv/sAa0VsWw4LFCAfjsg/vybVX3SuFMzdgQSef7/t1iQ44Gh\nN5B2asvXJb+SIgBDe7DBBMprA77wYsCs8gDj9tUqk6iIqqCohlUIilLcTswTLQ/B\n8K/Ols7uuwKBgQCqaajHUIuNlAuFyjmM/QeeSL+glMR/NS79mJv8PkBgOhODrPbn\neD1or8HWGQ7PYnwT4KXP449lvhjihW0OuI+I5w3LeuBsnV2iKyJ5Refsm0v2f7YI\nNSClzbNj8ubRrITYZZue7jJ/twkk3Bt7xwAs5Ptxo3oXZPMdXIwIXiqlFQKBgQCV\nUaSr9X3+WV0nW51vf5Z3cF6dNmULh2KOXjXB6aCGqhq8KS59QOfrLNp2rzEO+JmP\n9PF3MA5ITyVDJWd5TbmoTGHvkDeABOQtTGRFJHrv7io9W70B/fWZeQsBcZYRJ09p\nY7W5y8mlgLNrPQ91np8NkbSvnD139yTYsZ4IyqIwCQKBgQC2fL1bV1svJeY0oP1h\nt1rGwM/UShP8TmBx2vt3u5yyVpJTfSYbYCRst7jcClMdyWqF3kcJufd8zOKw5zDi\nGABx1OSpH3pHqLtzYupAZ/MzlxPhEAhG2bqMqzmp0iRsnkIlQpuwu1MYaXNbepyf\n+D+r8wp9/d2mfJE1zFauHy0x0w==\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@uarizona-rewards.iam.gserviceaccount.com",
+  "client_id": "113468896704660521461",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40uarizona-rewards.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

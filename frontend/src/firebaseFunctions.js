@@ -1,56 +1,68 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, getAuth, signOut } from "firebase/auth";
-import { auth } from "./firebaseConfig"; // Import the auth instance from firebaseConfig
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut
+} from "firebase/auth";
 
-// Sign-Up function
-export const signUp = async (email, password) => {
+import { auth } from "./firebaseConfig";
+
+const BACKEND_URL = "http://localhost:5000";
+
+// 🔹 Sign-Up
+export const signUp = async (email, password, name) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     const token = await user.getIdToken();
-    
-    // Send the token to your backend API for processing
-    const response = await fetch("/signup", {
+
+    const response = await fetch(`${BACKEND_URL}/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}` // Send token for verification
+        "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify({
-        email: email,
-        password: password,
-        name: user.displayName // You can add displayName if needed
-      })
+      body: JSON.stringify({ email, password, name })
     });
-    console.log('User signed up and data sent to backend:', response);
+
+    if (!response.ok) {
+      throw new Error("Backend signup failed");
+    }
+
+    return true;
   } catch (error) {
     console.error("Error during sign-up:", error);
+    return false;
   }
 };
 
-// Login function
+// 🔹 Login
 export const login = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     const token = await user.getIdToken();
 
-    // Fetch user points using token
-    const response = await fetch(`/points/${email}`, {
+    const response = await fetch(`${BACKEND_URL}/points/${email}`, {
       method: "GET",
       headers: {
-        "Authorization": `Bearer ${token}` // Send token for verification
+        "Authorization": `Bearer ${token}`
       }
     });
 
     const data = await response.json();
-    console.log("User points:", data);
-    return data.points; // You can set this to the state later
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to fetch user points");
+    }
+
+    return data.points;
   } catch (error) {
     console.error("Error during login:", error);
+    return null;
   }
 };
 
-// Logout function
+// 🔹 Logout
 export const logout = async () => {
   try {
     await signOut(auth);

@@ -1,49 +1,82 @@
 import React, { useState } from "react";
-import { signUp, login, logout } from "./firebaseFunctions"; // Import Firebase functions
+import { signUp, login, logout } from "./firebaseFunctions";
 
 const App = () => {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [userPoints, setUserPoints] = useState(null);
+  const [error, setError] = useState(null);
 
-  // Handle login
   const handleLogin = async () => {
+    setError(null);
     const points = await login(email, password);
-    setUserPoints(points); // Store points for display
+    if (points !== null) {
+      setUserPoints(points);
+    } else {
+      setError("Login failed. Please check your credentials.");
+    }
   };
 
-  // Handle sign-up
   const handleSignUp = async () => {
-    await signUp(email, password);
+    setError(null);
+    const success = await signUp(email, password, name);
+    if (success) {
+      alert("Signup successful! You can now log in.");
+    } else {
+      setError("Signup failed. Try a different email or check the console.");
+    }
   };
 
-  // Handle logout
   const handleLogout = async () => {
     await logout();
-    setUserPoints(null); // Clear points when user logs out
+    setUserPoints(null);
+    setEmail("");
+    setPassword("");
+    setName("");
+    setError(null);
   };
 
   return (
-    <div>
+    <div style={{ padding: "2rem", fontFamily: "Arial" }}>
       <h1>Welcome to UArizona Rewards</h1>
-      <input 
-        type="email" 
-        placeholder="Email" 
-        value={email} 
-        onChange={(e) => setEmail(e.target.value)} 
+
+      <input
+        type="text"
+        placeholder="Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        style={{ display: "block", marginBottom: "10px" }}
       />
-      <input 
-        type="password" 
-        placeholder="Password" 
-        value={password} 
-        onChange={(e) => setPassword(e.target.value)} 
+
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        style={{ display: "block", marginBottom: "10px" }}
       />
-      
-      <button onClick={handleSignUp}>Sign Up</button>
-      <button onClick={handleLogin}>Login</button>
+
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        style={{ display: "block", marginBottom: "10px" }}
+      />
+
+      <button onClick={handleSignUp} style={{ marginRight: "10px" }}>
+        Sign Up
+      </button>
+      <button onClick={handleLogin} style={{ marginRight: "10px" }}>
+        Login
+      </button>
       <button onClick={handleLogout}>Logout</button>
 
-      {userPoints !== null && <p>Your Points: {userPoints}</p>}
+      {userPoints !== null && (
+        <p style={{ marginTop: "20px" }}>🎉 Your Points: {userPoints}</p>
+      )}
+      {error && <p style={{ color: "red", marginTop: "10px" }}>⚠️ {error}</p>}
     </div>
   );
 };

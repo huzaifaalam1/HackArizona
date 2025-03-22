@@ -1,0 +1,154 @@
+/* Reset & Global Styles */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f4;
+  }
+  
+  /* Container */
+  .dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+  }
+  
+  /* 1. Heading */
+  .dashboard-heading {
+    text-align: center;
+    color: #00205B; /* UA Navy Blue */
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+  }
+  
+  /* 2. Navbar */
+  .dashboard-nav {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    background-color: #d22630; /* UA Red */
+    padding: 10px 0;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+  
+  .dashboard-nav a {
+    color: white;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+  }
+  
+  .dashboard-nav a:hover {
+    background-color: #aa1b25;
+  }
+  
+  /* Top Section */
+  .dashboard-top-section {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  /* 3. Student Info */
+  .student-info {
+    flex: 2;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  
+  .student-info h3 {
+    margin: 0 0 10px;
+    color: #00205B;
+  }
+  
+  /* 4. Badge */
+  .badge-display {
+    flex: 1;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  
+  /* 5. Multiplier */
+  .multiplier {
+    flex: 1.2;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  
+  /* Bottom Section */
+  .dashboard-bottom-section {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  /* 6. Leaderboard */
+  .leaderboard {
+    flex: 1.2;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  
+  .leaderboard h3 {
+    margin-bottom: 10px;
+    color: #00205B;
+  }
+  
+  .leaderboard ol {
+    padding-left: 18px;
+    margin-bottom: 10px;
+  }
+  
+  .leaderboard button {
+    background-color: #d22630;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .leaderboard button:hover {
+    background-color: #aa1b25;
+  }
+  
+  /* 7. Milestones */
+  .milestones {
+    flex: 0.8;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  
+  .milestones h3 {
+    margin-bottom: 10px;
+    color: #00205B;
+  }
+  
+  /* 8. Recent Activity */
+  .activity-log {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  
+  .activity-log h3 {
+    margin-bottom: 10px;
+    color: #00205B;
+  }
+  

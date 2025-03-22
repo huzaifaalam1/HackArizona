@@ -1,7 +1,8 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
+  getAuth
 } from "firebase/auth";
 
 import { auth } from "./firebaseConfig";
@@ -69,5 +70,32 @@ export const logout = async () => {
     console.log("User logged out successfully");
   } catch (error) {
     console.error("Error during logout:", error);
+  }
+};
+
+// 🔹 NEW: Get Full User Data (name, badge, points, etc.)
+export const getUserData = async () => {
+  try {
+    const user = getAuth().currentUser;
+    if (!user) throw new Error("No user is currently logged in");
+
+    const token = await user.getIdToken();
+
+    const response = await fetch(`${BACKEND_URL}/student`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch student data");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching student data:", error);
+    return null;
   }
 };

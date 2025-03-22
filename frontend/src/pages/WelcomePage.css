@@ -1,0 +1,26 @@
+.welcome-container {
+    text-align: center;
+    padding: 4rem;
+    background-color: #e5e5e5;
+    color: #0c234b;
+  }
+  
+  .button-group {
+    margin-top: 2rem;
+  }
+  
+  .button {
+    margin: 0 1rem;
+    padding: 12px 24px;
+    background-color: #cc0033;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 5px;
+    transition: 0.3s ease;
+  }
+  
+  .button:hover {
+    background-color: #9d2235;
+  }
+  

@@ -2,7 +2,6 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  getAuth
 } from "firebase/auth";
 
 import { auth } from "./firebaseConfig";
@@ -53,10 +52,14 @@ export const login = async (email, password) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || "Failed to fetch user points");
+      throw new Error(data.error || "Failed to fetch user data");
     }
 
-    return data.points;
+    return {
+      name: data.name,
+      points: data.points,
+      badge: data.badge
+    };
   } catch (error) {
     console.error("Error during login:", error);
     return null;
@@ -73,19 +76,23 @@ export const logout = async () => {
   }
 };
 
-// 🔹 NEW: Get Full User Data (name, badge, points, etc.)
 export const getUserData = async () => {
   try {
-    const user = getAuth().currentUser;
-    if (!user) throw new Error("No user is currently logged in");
+    const user = await new Promise((resolve, reject) => {
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        unsubscribe(); // stop listening once we get a result
+        if (user) resolve(user);
+        else reject(new Error("No user is currently logged in"));
+      });
+    });
 
     const token = await user.getIdToken();
 
     const response = await fetch(`${BACKEND_URL}/student`, {
       method: "GET",
       headers: {
-        "Authorization": `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
@@ -99,3 +106,35 @@ export const getUserData = async () => {
     return null;
   }
 };
+
+export const getRecentActivity = async () => {
+  try {
+    const user = await new Promise((resolve, reject) => {
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        unsubscribe();
+        if (user) resolve(user);
+        else reject(new Error("No user is currently logged in"));
+      });
+    });
+
+    const token = await user.getIdToken();
+
+    const response = await fetch(`${BACKEND_URL}/activity`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch activity log");
+    }
+
+    const data = await response.json();
+    return data.activities;
+  } catch (error) {
+    console.error("Error fetching activity log:", error);
+    return [];
+  }
+};
+

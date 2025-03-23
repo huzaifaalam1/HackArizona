@@ -1,0 +1,127 @@
+/* Reset & Global Styles */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f4;
+  }
+  
+  /* Container */
+  .leaderboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+  }
+  
+  /* Heading */
+  .leaderboard-heading {
+    text-align: center;
+    color: #00205B; /* UA Navy Blue */
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+  }
+  
+  /* Leaderboard Table */
+  .leaderboard-table {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+  }
+  
+  .leaderboard-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .leaderboard-table th, .leaderboard-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .leaderboard-table th {
+    background-color: #d22630; /* UA Red */
+    color: white;
+  }
+  
+  /* Button */
+  .view-full-rankings-btn {
+    background-color: #d22630;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .view-full-rankings-btn:hover {
+    background-color: #aa1b25;
+  }
+  
+  /* Full Leaderboard */
+  .full-leaderboard {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    margin-top: 30px;
+  }
+  
+  .full-leaderboard h3 {
+    margin-bottom: 10px;
+    color: #00205B;
+  }
+  
+  /* Pie Chart */
+  .recharts-wrapper {
+    margin: 30px 0;
+  }
+  
+  /* Extended Leaderboard */
+  .full-leaderboard table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .full-leaderboard th, .full-leaderboard td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .full-leaderboard th {
+    background-color: #00205B; /* UA Navy Blue */
+    color: white;
+  }
+  
+  .league-section {
+    margin-bottom: 30px;
+  }
+  
+  .view-full-rankings-btn {
+    background-color: #D62F2F;  /* Red background */
+    color: white;
+    font-size: 16px;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 220px;  /* Adjust width */
+    margin-top: 20px;  /* Top margin for spacing */
+    text-align: center;
+    transition: background-color 0.3s ease;
+    margin-right: 20px;
+  }
+  
+  /* Hover effect for the buttons */
+  .view-full-rankings-btn:hover {
+    background-color: #e04343;  /* Darker red on hover */
+  }
+  
+  .return-home-btn {
+    margin-top: 20px; /* Ensure the same spacing as the other button */
+    width: 220px; /* Same width for consistency */
+    margin-left: 10px; /* Add space between buttons */
+  }

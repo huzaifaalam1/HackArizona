@@ -67,11 +67,12 @@ app.post("/signup", async (req, res) => {
         const studentDoc = await studentRef.get();
 
         if (!studentDoc.exists) {
-            // 🔥 Step 4: Add user to Firestore
+            // 🔥 Step 4: Add user to Firestore with default badge
             await studentRef.set({
                 email: email.toLowerCase(),
                 name: name,
                 points: 100,
+                badge: "Bronze" // ✅ Default badge
             });
         }
 
@@ -87,7 +88,6 @@ app.post("/login", verifyToken, async (req, res) => {
     try {
         const userId = req.user.uid;
 
-        // 🔥 Step 1: Fetch user from Firestore
         const studentRef = db.collection("Students").doc(userId);
         const studentDoc = await studentRef.get();
 
@@ -104,7 +104,7 @@ app.post("/login", verifyToken, async (req, res) => {
 
 // 🔹 Get Student Points (Protected Route)
 app.get("/points/:email", verifyToken, async (req, res) => {
-    const email = req.params.email.trim().toLowerCase(); // 🔥 Normalize email
+    const email = req.params.email.trim().toLowerCase();
     console.log(`Searching for email: ${email}`);
 
     try {
@@ -112,7 +112,6 @@ app.get("/points/:email", verifyToken, async (req, res) => {
 
         if (snapshot.empty) {
             console.log("No matching student found.");
-            // 🔥 Optional: log existing emails to compare
             const allDocs = await db.collection("Students").get();
             allDocs.forEach((doc) => {
                 console.log("Existing email in DB:", doc.data().email);
@@ -127,11 +126,136 @@ app.get("/points/:email", verifyToken, async (req, res) => {
             studentData = doc.data();
         });
 
-        res.json({ points: studentData.points });
+        res.json({ 
+            points: studentData.points,
+            name: studentData.name,
+            badge: studentData.badge || "Bronze"
+        });
     } catch (error) {
         console.error("Firestore error:", error);
         res.status(500).json({ error: error.message });
     }
+});
+
+// 🔹 Get Full Student Data by Firebase Auth Email
+app.get("/student", verifyToken, async (req, res) => {
+    try {
+      const userEmail = req.user.email.toLowerCase(); // 🔥 Get email from decoded token
+  
+      const snapshot = await db.collection("Students").where("email", "==", userEmail).get();
+  
+      if (snapshot.empty) {
+        return res.status(404).json({ error: "Student not found" });
+      }
+  
+      const studentData = snapshot.docs[0].data();
+      res.json(studentData); // { name, points, badge }
+    } catch (error) {
+      console.error("Error fetching student data:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });  
+  
+// 🔹 Get Recent Activity (Protected Route)
+app.get("/activity", verifyToken, async (req, res) => {
+    try {
+      const userEmail = req.user.email.toLowerCase();
+  
+      // Step 1: Find the student document by email
+      const snapshot = await db.collection("Students").where("email", "==", userEmail).get();
+  
+      if (snapshot.empty) {
+        return res.status(404).json({ error: "Student not found" });
+      }
+  
+      const studentDoc = snapshot.docs[0];
+      const activityRef = studentDoc.ref.collection("ActivityLog");
+  
+      // Step 2: Fetch activities (sorted by timestamp descending)
+      const activitySnap = await activityRef.orderBy("timestamp", "desc").limit(5).get();
+      console.log("Fetched activity documents count:", activitySnap.docs.length);
+  
+      const activities = activitySnap.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          timestamp: data.timestamp.toDate().toISOString(), // 🔥 convert to ISO string
+        };
+      });
+      
+  
+      res.json({ activities });
+    } catch (error) {
+      console.error("Error fetching activity log:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });  
+
+// 🔹 Get Leaderboard - Top 10 Users
+app.get("/leaderboard", async (req, res) => {
+    try {
+        // 🔥 Fetch all students and order them by points in descending order
+        const snapshot = await db.collection("Students").orderBy("points", "desc").limit(10).get();
+        
+        if (snapshot.empty) {
+            return res.status(404).json({ error: "No users found" });
+        }
+
+        let leaderboard = [];
+        snapshot.forEach((doc, index) => {
+            const user = doc.data();
+            leaderboard.push({
+                rank: index + 1,
+                name: user.name,
+                points: user.points,
+                badge: user.badge || "Bronze" // Default to Bronze if no badge
+            });
+        });
+
+        res.json({ leaderboard });
+    } catch (error) {
+        console.error("Leaderboard error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 🔹 Get Full Leaderboard by League - Top 100 Users per League
+app.get("/leaderboard/full", async (req, res) => {
+    try {
+        const leagues = ["Bronze", "Silver", "Gold", "Diamond"];
+        let fullLeaderboard = {};
+
+        for (let league of leagues) {
+            // 🔥 Get the top 100 users in each league
+            const snapshot = await db.collection("Students")
+                .where("badge", "==", league)
+                .orderBy("points", "desc")
+                .limit(100)
+                .get();
+
+            if (snapshot.empty) {
+                fullLeaderboard[league] = [];
+                continue;
+            }
+
+            let leaderboard = [];
+            snapshot.forEach((doc, index) => {
+                const user = doc.data();
+                leaderboard.push({
+                    rank: index + 1,
+                    name: user.name,
+                    points: user.points,
+                    badge: user.badge || "Bronze"
+                });
+            });
+            fullLeaderboard[league] = leaderboard;
+        }
+
+        res.json(fullLeaderboard);
+    } catch (error) {
+        console.error("Full leaderboard error:", error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // 🔹 Start the Server

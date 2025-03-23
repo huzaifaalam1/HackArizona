@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "./LeaderboardPage.css";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts"; // Chart library for league distribution
-import { useNavigate } from "react-router-dom"; // Import useNavigate from react-router-dom
+import { useNavigate } from "react-router-dom";
+import { auth } from "../firebaseConfig";
 
-// Define the leagues with min/max points for each league
+// League tiers
 const leagues = [
   { name: "Unranked", minPoints: 0, maxPoints: 50 },
   { name: "Wildcat Cubs", minPoints: 51, maxPoints: 150 },
@@ -14,14 +14,12 @@ const leagues = [
   { name: "Master of the Mall", minPoints: 1501, maxPoints: Infinity },
 ];
 
-// Function to calculate the league based on points
 const getUserLeague = (points) => {
   return leagues.find(
     (league) => points >= league.minPoints && points <= league.maxPoints
   ).name;
 };
 
-// Function to calculate the rank dynamically
 const getRank = (points, leaderboard) => {
   const sortedLeaderboard = [...leaderboard].sort((a, b) => b.points - a.points);
   const rankIndex = sortedLeaderboard.findIndex((user) => user.points === points);
@@ -31,14 +29,10 @@ const getRank = (points, leaderboard) => {
 const LeaderboardPage = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [fullLeaderboard, setFullLeaderboard] = useState({});
-  const [userData, setUserData] = useState({
-    name: "",
-    points: 0,
-    badge: "",
-  });
+  const [userData, setUserData] = useState(null);
   const [isFullLeaderboardVisible, setIsFullLeaderboardVisible] = useState(false);
 
-  const navigate = useNavigate(); // Initialize navigate hook
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -47,9 +41,25 @@ const LeaderboardPage = () => {
         const data = await response.json();
         setLeaderboard(data.leaderboard);
 
-        const currentUser = data.leaderboard.find(user => user.name === "User Test");
-        if (currentUser) {
-          setUserData(currentUser);
+        const user = auth.currentUser;
+
+        if (user && user.email) {
+          const matchedUser = data.leaderboard.find(
+            (entry) => entry.email === user.email
+          );
+
+          if (matchedUser) {
+            setUserData(matchedUser);
+          } else {
+            // fallback: user is not in top 10
+            // optionally fetch full data from backend OR show zero data
+            setUserData({
+              name: user.displayName || "You",
+              email: user.email,
+              points: 0,
+              badge: "Bronze"
+            });
+          }
         }
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
@@ -59,7 +69,6 @@ const LeaderboardPage = () => {
     fetchLeaderboard();
   }, []);
 
-  // Organize the leaderboard data by leagues
   const fullLeaderboardData = {
     Unranked: leaderboard.filter((user) => user.points <= 50),
     "Wildcat Cubs": leaderboard.filter((user) => user.points > 50 && user.points <= 150),
@@ -90,8 +99,8 @@ const LeaderboardPage = () => {
             </tr>
           </thead>
           <tbody>
-            {leaderboard.slice(0, 10).map((user) => (
-              <tr key={user.id}>
+            {leaderboard.slice(0, 10).map((user, index) => (
+              <tr key={index}>
                 <td>{getRank(user.points, leaderboard)}</td>
                 <td>{user.name}</td>
                 <td>{user.points}</td>
@@ -99,17 +108,18 @@ const LeaderboardPage = () => {
               </tr>
             ))}
             <tr>
-              <td colSpan="4" style={{ textAlign: "center" }} >
+              <td colSpan="4" style={{ textAlign: "center" }}>
                 ...
               </td>
             </tr>
-            {/* Show the current user's rank */}
-            <tr>
-              <td>{getRank(userData.points, leaderboard)}</td>
-              <td>{userData.name}</td>
-              <td>{userData.points}</td>
-              <td>{getUserLeague(userData.points)}</td>
-            </tr>
+            {userData && (
+              <tr>
+                <td>{getRank(userData.points, leaderboard)}</td>
+                <td>{userData.name}</td>
+                <td>{userData.points}</td>
+                <td>{getUserLeague(userData.points)}</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -118,13 +128,11 @@ const LeaderboardPage = () => {
         View Full Rankings
       </button>
 
-      {/* Show full leaderboard data */}
       {isFullLeaderboardVisible && (
         <div className="full-leaderboard">
           <h2>Full Leaderboard</h2>
           <h3>Displaying the top 100 users in each league</h3>
 
-          {/* Render leagues in reverse order */}
           {Object.keys(fullLeaderboard).reverse().map((league) => (
             <div key={league} className="league-section">
               <h3>{league} League</h3>
@@ -157,12 +165,12 @@ const LeaderboardPage = () => {
         </div>
       )}
 
-      {/* Return to Home button */}
-      <button onClick={() => navigate("/dashboard")} className="view-full-rankings-btn return-home-btn">
-      Return to Dashboard
+      <button
+        onClick={() => navigate("/dashboard")}
+        className="view-full-rankings-btn return-home-btn"
+      >
+        Return to Dashboard
       </button>
-
-
     </div>
   );
 };

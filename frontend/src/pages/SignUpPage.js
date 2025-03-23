@@ -12,6 +12,12 @@ const SignupPage = () => {
 
   const handleSignup = async () => {
     setError(null);
+  
+    if (!email.endsWith("@arizona.edu")) {
+      setError("Only @arizona.edu email addresses are allowed.");
+      return;
+    }
+  
     const success = await signUp(email, password, name);
     if (success) {
       navigate("/login");
@@ -19,6 +25,7 @@ const SignupPage = () => {
       setError("Signup failed. Try again.");
     }
   };
+  
 
   return (
     <div className="signup-container">

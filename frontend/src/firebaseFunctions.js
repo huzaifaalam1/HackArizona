@@ -138,3 +138,47 @@ export const getRecentActivity = async () => {
   }
 };
 
+export const getTopLeaderboard = async () => {
+  try {
+    const response = await fetch("http://localhost:5000/leaderboard");
+    const data = await response.json();
+    return data.leaderboard;
+  } catch (error) {
+    console.error("Error fetching leaderboard:", error);
+    return [];
+  }
+};
+
+export const checkInForEvent = async () => {
+  try {
+    const user = await new Promise((resolve, reject) => {
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        unsubscribe();
+        if (user) resolve(user);
+        else reject(new Error("No user logged in"));
+      });
+    });
+
+    const token = await user.getIdToken();
+
+    const response = await fetch("http://localhost:5000/check-in", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ points: 50 }) // Customize point reward
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Check-in failed");
+    }
+
+    return data.message;
+  } catch (error) {
+    console.error("Check-in error:", error);
+    return null;
+  }
+};
+

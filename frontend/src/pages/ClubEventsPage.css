@@ -1,0 +1,103 @@
+.club-events-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .club-events-heading {
+    text-align: center;
+    font-size: 2rem;
+    color: #00205B;
+    margin-bottom: 30px;
+  }
+  
+  .event-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .event-card {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .event-name {
+    font-size: 1.4rem;
+    color: #00205B;
+    margin-bottom: 8px;
+  }
+  
+  .event-date,
+  .event-location,
+  .event-description {
+    font-size: 14px;
+    margin: 4px 0;
+    color: #333;
+  }
+  
+  .checkin-button {
+    margin-top: 10px;
+    background-color: #d2232a;
+    color: white;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  
+  .checkin-button:hover {
+    background-color: #aa1b25;
+  }
+
+  .checkin-message {
+    background-color: #e0ffe4;
+    border-left: 6px solid #34a853;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    color: #155724;
+  }
+
+  .checkin-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .checkin-message {
+    background-color: #e0ffe4;
+    border-left: 6px solid #34a853;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    color: #155724;
+  }
+  
+  /* Back Button */
+  .back-button-container {
+    margin-top: 30px;
+    text-align: center;
+  }
+  
+  .back-button {
+    background-color: #d2232a;
+    color: white;
+    padding: 10px 20px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .back-button:hover {
+    background-color: #aa1b25;
+  }
+  

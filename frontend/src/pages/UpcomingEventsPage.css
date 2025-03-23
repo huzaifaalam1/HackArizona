@@ -1,0 +1,63 @@
+/* Page Container */
+.events-page-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  /* Heading */
+  .events-heading {
+    text-align: center;
+    font-size: 2rem;
+    color: #00205B;
+    margin-bottom: 30px;
+  }
+  
+  /* Event List */
+  .events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* Each Event Card */
+  .event-card {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Event Title */
+  .event-title {
+    margin: 0 0 10px;
+    font-size: 1.4rem;
+    color: #00205B;
+  }
+  
+  /* Date & Registered */
+  .event-date,
+  .event-registered {
+    font-size: 14px;
+    margin: 4px 0;
+    color: #333;
+  }
+  
+  /* Register Button */
+  .register-button {
+    margin-top: 10px;
+    background-color: #d2232a;
+    color: white;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  
+  .register-button:hover {
+    background-color: #aa1b25;
+  }
+  

@@ -12,11 +12,16 @@ const ResetPasswordPage = () => {
     try {
       await sendPasswordResetEmail(auth, email);
       setMessage("Password reset email sent. Please check your inbox.");
+  
+      // 🔁 Redirect to login after 1.5 seconds
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1500);
     } catch (error) {
       setMessage("Error: " + error.message);
     }
   };
-
+  
   return (
     <div className="page-container">
       <h2 className="page-heading">Reset Your Password</h2>

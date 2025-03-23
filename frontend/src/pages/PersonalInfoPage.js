@@ -8,6 +8,7 @@ const PersonalInfoPage = () => {
   useEffect(() => {
     const fetchInfo = async () => {
       const data = await getUserData();
+      console.log("Fetched user data:", data);
       setUserInfo(data);
     };
     fetchInfo();

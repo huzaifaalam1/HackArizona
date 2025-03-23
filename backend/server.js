@@ -43,6 +43,11 @@ app.post("/signup", async (req, res) => {
     const { email, password, name } = req.body;
 
     try {
+        // ✅ Email Domain Check (Backend Validation)
+        if (!email.toLowerCase().endsWith("@arizona.edu")) {
+            return res.status(400).json({ error: "Only @arizona.edu emails are allowed." });
+        }
+
         // 🔥 Step 1: Check if user exists in Firebase Authentication
         let userRecord;
         try {
@@ -72,8 +77,14 @@ app.post("/signup", async (req, res) => {
                 email: email.toLowerCase(),
                 name: name,
                 points: 100,
-                badge: "Bronze" // ✅ Default badge
+                badge: "Bronze"
             });
+        } else {
+            // ✅ Ensure badge is set for older users
+            const data = studentDoc.data();
+            if (!data.badge) {
+                await studentRef.update({ badge: "Bronze" });
+            }
         }
 
         res.status(201).json({ message: "User registered successfully", uid: userRecord.uid });
@@ -208,7 +219,8 @@ app.get("/leaderboard", async (req, res) => {
                 rank: index + 1,
                 name: user.name,
                 points: user.points,
-                badge: user.badge || "Bronze" // Default to Bronze if no badge
+                badge: user.badge || "Bronze", // Default to Bronze if no badge
+                email: user.email
             });
         });
 
@@ -245,7 +257,8 @@ app.get("/leaderboard/full", async (req, res) => {
                     rank: index + 1,
                     name: user.name,
                     points: user.points,
-                    badge: user.badge || "Bronze"
+                    badge: user.badge || "Bronze",
+                    email: user.email
                 });
             });
             fullLeaderboard[league] = leaderboard;
@@ -254,9 +267,80 @@ app.get("/leaderboard/full", async (req, res) => {
         res.json(fullLeaderboard);
     } catch (error) {
         console.error("Full leaderboard error:", error);
-        res.status(500).json({ error: error.message });
-    }
+        res.status(500).json({ error: error.message})
+    }
 });
+
+// 🔹 POST /check-in - Adds points to current user (e.g. 50 pts)
+app.post("/check-in", verifyToken, async (req, res) => {
+    const pointsToAdd = req.body.points || 50; // default to 50
+    const userEmail = req.user.email.toLowerCase();
+  
+    try {
+      const snapshot = await db.collection("Students").where("email", "==", userEmail).get();
+  
+      if (snapshot.empty) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      const doc = snapshot.docs[0];
+      const currentPoints = doc.data().points || 0;
+      await doc.ref.update({ points: currentPoints + pointsToAdd });
+  
+      res.json({ message: "Points updated successfully" });
+    } catch (error) {
+      console.error("Check-in error:", error);
+      res.status(500).json({ error: "Failed to check in" });
+    }
+  });
+
+  app.get("/userData", verifyToken, async (req, res) => {
+    try {
+      const userId = req.user.uid; // Get the current logged-in user's ID from the decoded token
+  
+      // Fetch user data from Firestore using the userId
+      const studentRef = db.collection("Students").doc(userId);
+      const studentDoc = await studentRef.get();
+  
+      if (!studentDoc.exists) {
+        return res.status(404).send("User not found");
+      }
+  
+      // Return the real user data from Firestore
+      const userData = studentDoc.data();
+      res.json({
+        id: userId,
+        name: userData.name,
+        points: userData.points
+      });
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // 🔒 Secure version using verifyToken middleware
+app.post('/updatePoints', verifyToken, async (req, res) => {
+    const { points } = req.body;
+    const userEmail = req.user.email.toLowerCase();
+  
+    try {
+      const snapshot = await db.collection("Students").where("email", "==", userEmail).get();
+  
+      if (snapshot.empty) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      const studentRef = snapshot.docs[0].ref;
+      await studentRef.update({ points });
+  
+      res.status(200).json({ message: 'Points updated successfully' });
+    } catch (error) {
+      console.error("Error updating points:", error);
+      res.status(500).json({ error: 'Error updating points' });
+    }
+  });
+  
 
 // 🔹 Start the Server
 const PORT = process.env.PORT || 5000;

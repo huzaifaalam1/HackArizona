@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import "./Dashboard.css";
-import { getUserData, getRecentActivity, logout } from "../firebaseFunctions";
+import {
+  getUserData,
+  getRecentActivity,
+  getTopLeaderboard,
+} from "../firebaseFunctions";
 import { Link } from "react-router-dom";
 
-
-// 🔹 Multiplier values mapped to badge
 const badgeMultipliers = {
   Bronze: 1.0,
   Silver: 1.1,
@@ -18,8 +20,8 @@ const Dashboard = () => {
   const [badge, setBadge] = useState("Bronze");
   const [multiplier, setMultiplier] = useState(badgeMultipliers["Bronze"]);
   const [activityLog, setActivityLog] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
 
-  // 🔹 Fetch student info on page load
   useEffect(() => {
     const fetchData = async () => {
       const userData = await getUserData();
@@ -31,78 +33,94 @@ const Dashboard = () => {
 
       const log = await getRecentActivity();
       setActivityLog(log);
+
+      const top5 = await getTopLeaderboard();
+      setLeaderboard(top5.slice(0, 5));
     };
     fetchData();
   }, []);
 
-  // 🔹 Update multiplier whenever badge changes
   useEffect(() => {
     const newMultiplier = badgeMultipliers[badge] || 1.0;
     setMultiplier(newMultiplier);
   }, [badge]);
 
-  const handleLogout = async () => {
-    await logout();
-    window.location.href = "/login"; // 🔁 Redirect to login page after logout
-  };
-
   return (
     <div className="dashboard-container">
-      {/* 1. Heading */}
       <h1 className="dashboard-heading">MyCampusRewards</h1>
 
-      {/* 2. Navigation Bar */}
       <nav className="dashboard-nav">
         <div className="nav-item dropdown">
           <span className="dropdown-button">Account</span>
           <div className="dropdown-content">
-            <a href="#personal-info">Personal Info</a>
-            <a href="#reset-password">Reset Password</a>
-            <a href="#logout">Logout</a>
+            <Link to="/personal-info">Personal Info</Link>
+            <Link to="/reset-password">Reset Password</Link>
+            <span
+              className="dropdown-link"
+              onClick={() => {
+                localStorage.clear();
+                window.location.href = "/login";
+              }}
+            >
+              Logout
+            </span>
           </div>
         </div>
-        <a href="#clubs" className="nav-item">
+
+        <Link to="/my-clubs" className="nav-item">
           My Clubs
-        </a>
-        <a href="#explore" className="nav-item">
-          Explore
-        </a>
-        <a href="#redeem" className="nav-item">
+        </Link>
+
+        <div className="nav-item dropdown">
+          <span className="dropdown-button">Explore</span>
+          <div className="dropdown-content">
+            <Link to="/upcoming-events">Upcoming Events</Link>
+            <Link to="/new-clubs">New Clubs</Link>
+          </div>
+        </div>
+
+        <Link to="/redeem" className="nav-item">
           Redeem
-        </a>
-        <a href="#purchases" className="nav-item">
+        </Link>
+        <Link to="/purchases" className="nav-item">
           Purchases
-        </a>
+        </Link>
       </nav>
 
       <div className="dashboard-top-section">
-        {/* 3. Student Info */}
         <div className="student-info">
           <h3>Hi, {name}!</h3>
           <p>Points: {points}</p>
         </div>
 
-        {/* 4. Badge Display */}
         <div className="badge-display">
           <p>Badge: {badge}</p>
         </div>
 
-        {/* 5. Multiplier */}
         <div className="multiplier">
           <p>Points Multiplier: {multiplier}x</p>
         </div>
       </div>
 
       <div className="dashboard-bottom-section">
-        {/* 6. Leaderboard Preview */}
         <div className="leaderboard">
           <h3>Leaderboard</h3>
+          <ol>
+            {leaderboard.length === 0 ? (
+              <li>Loading...</li>
+            ) : (
+              leaderboard.map((user, index) => (
+                <li key={index}>
+                  {user.name} - {user.points} pts
+                </li>
+              ))
+            )}
+          </ol>
           <Link to="/leaderboard">
             <button>View More</button>
-          </Link>
+          </Link>
         </div>
 
-        {/* 7. Milestones */}
         <div className="milestones">
           <h3>Milestones</h3>
           <ul>
@@ -122,7 +140,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 8. Recent Activity */}
       <div className="activity-log">
         <h3>Recent Activity</h3>
         <ul>

@@ -6,12 +6,16 @@ import {
 
 import { auth } from "./firebaseConfig";
 
-const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
 // 🔹 Sign-Up
 export const signUp = async (email, password, name) => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     const user = userCredential.user;
     const token = await user.getIdToken();
 
@@ -19,9 +23,9 @@ export const signUp = async (email, password, name) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ email, password, name })
+      body: JSON.stringify({ email, password, name }),
     });
 
     if (!response.ok) {
@@ -164,10 +168,10 @@ export const checkInForEvent = async () => {
     const response = await fetch("http://localhost:5000/check-in", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ points: 50 }) // Customize point reward
+      body: JSON.stringify({ points: 50 }), // Customize point reward
     });
 
     const data = await response.json();
@@ -182,3 +186,79 @@ export const checkInForEvent = async () => {
   }
 };
 
+// Utility function to handle API calls
+const fetchWithAuth = async (url, options = {}) => {
+  try {
+    const user = await new Promise((resolve, reject) => {
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        unsubscribe();
+        if (user) resolve(user);
+        else reject(new Error("No user is currently logged in"));
+      });
+    });
+
+    const token = await user.getIdToken();
+
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API Error: ${response.status} - ${errorText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(`Error in API call to ${url}:`, error);
+    throw error;
+  }
+};
+// Get Heatmap Data
+export const getHeatmapData = async (timeRange = "24h") => {
+  try {
+    console.log(`Fetching heatmap data for time range: ${timeRange}`);
+
+    const data = await fetchWithAuth(
+      `${BACKEND_URL}/api/heatmap?timeRange=${timeRange}`
+    );
+
+    console.log("Heatmap data received:", data);
+
+    // Validate the structure of the returned data
+    if (!data || !Array.isArray(data.heatmapData)) {
+      console.warn("Unexpected heatmap data format", data);
+      return {
+        heatmapData: [],
+        totalCheckIns: 0,
+        topLocations: [],
+      };
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Comprehensive error fetching heatmap data:", error);
+    return {
+      heatmapData: [],
+      totalCheckIns: 0,
+      topLocations: [],
+    };
+  }
+};
+// 🔹 Record Check-in
+export const recordCheckIn = async (locationData) => {
+  try {
+    return await fetchWithAuth(`${BACKEND_URL}/api/checkin`, {
+      method: "POST",
+      body: JSON.stringify(locationData),
+    });
+  } catch (error) {
+    console.error("Error recording check-in:", error);
+    return null;
+  }
+};

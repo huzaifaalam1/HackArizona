@@ -6,6 +6,7 @@ import {
   getTopLeaderboard,
 } from "../firebaseFunctions";
 import { Link } from "react-router-dom";
+import Chatbot from "../components/Chatbot";
 
 const badgeMultipliers = {
   Bronze: 1.0,
@@ -159,6 +160,8 @@ const Dashboard = () => {
           )}
         </ul>
       </div>
+      {/* Add Chatbot component */}
+      <Chatbot />
     </div>
   );
 };

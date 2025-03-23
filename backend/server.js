@@ -1,14 +1,20 @@
+require("dotenv").config();
+console.log("Debug - AWS credentials check:");
+console.log("AWS_REGION:", process.env.AWS_REGION ? "Found" : "Not found");
+console.log("AWS_ACCESS_KEY_ID:", process.env.AWS_ACCESS_KEY_ID ? "Found" : "Not found");
+console.log("AWS_SECRET_ACCESS_KEY:", process.env.AWS_SECRET_ACCESS_KEY ? "Found" : "Not found");
+console.log("AWS_SESSION_TOKEN:", process.env.AWS_SESSION_TOKEN ? "Found" : "Not found");
 const admin = require("firebase-admin");
 const express = require("express");
 const cors = require("cors");
 const { getAuth } = require("firebase-admin/auth");
-require("dotenv").config();
+const { BedrockRuntimeClient, InvokeModelCommand } = require("@aws-sdk/client-bedrock-runtime");
 
 const serviceAccount = require("./firebase-admin.json");
 
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    projectId: "uarizona-rewards",
+  credential: admin.credential.cert(serviceAccount),
+  projectId: "uarizona-rewards",
 });
 
 const db = admin.firestore();
@@ -18,19 +24,200 @@ app.use(express.json());
 
 // 🔹 Middleware to Verify Token
 const verifyToken = async (req, res, next) => {
-    const token = req.headers.authorization?.split("Bearer ")[1];
+  const token = req.headers.authorization?.split("Bearer ")[1];
 
-    if (!token) {
-        return res.status(401).json({ error: "Unauthorized - No token provided" });
+  if (!token) {
+    return res.status(401).json({ error: "Unauthorized - No token provided" });
+  }
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = decodedToken;
+    next();
+  } catch (error) {
+    return res.status(403).json({ error: "Invalid token" });
+  }
+};
+
+// 🔹 Check-in Endpoint with Heatmap Support
+app.post("/api/checkin", verifyToken, async (req, res) => {
+  try {
+    const { locationId, locationName, latitude, longitude } = req.body;
+    const userId = req.user.uid;
+
+    if (!locationId || !latitude || !longitude) {
+      return res.status(400).json({ error: 'Missing required fields: locationId, latitude, longitude' });
     }
 
-    try {
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        req.user = decodedToken; // Attach user data to request
-        next();
-    } catch (error) {
-        return res.status(403).json({ error: "Invalid token" });
-    }
+    const checkInRef = db.collection('CheckIns').doc();
+    await checkInRef.set({
+      userId,
+      locationId,
+      locationName: locationName || locationId,
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      points: 10
+    });
+
+    const userRef = db.collection('Students').doc(userId);
+    await userRef.update({ points: admin.firestore.FieldValue.increment(10) });
+
+    res.json({ message: 'Check-in recorded successfully', points: 10 });
+  } catch (error) {
+    console.error('Check-in Error:', error);
+    res.status(500).json({ error: 'Could not record check-in' });
+  }
+});
+
+// 🔹 Heatmap Data Endpoint
+app.get("/api/heatmap", verifyToken, async (req, res) => {
+  try {
+    const { timeRange = '24h' } = req.query;
+
+    const calculateStartTime = (range) => {
+      const now = new Date();
+      switch (range) {
+        case '1h': return new Date(now.getTime() - 60 * 60 * 1000);
+        case '6h': return new Date(now.getTime() - 6 * 60 * 60 * 1000);
+        case '1d': return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        case '6d': return new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
+        case '1m': return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        default: return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      }
+    };
+
+    const startTime = calculateStartTime(timeRange);
+
+    const checkInsRef = db.collection('CheckIns');
+    const snapshot = await checkInsRef.where('timestamp', '>=', startTime).get();
+
+    const heatmapData = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        lat: data.latitude,
+        lng: data.longitude,
+        weight: data.points || 1,
+        locationName: data.locationName || 'Unknown Location'
+      };
+    });
+
+    const locationCounts = heatmapData.reduce((acc, point) => {
+      acc[point.locationName] = (acc[point.locationName] || 0) + 1;
+      return acc;
+    }, {});
+
+    const topLocations = Object.entries(locationCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }));
+
+    res.json({
+      heatmapData,
+      timeRange,
+      totalCheckIns: heatmapData.length,
+      topLocations
+    });
+  } catch (error) {
+    console.error('Heatmap Data Error:', error);
+    res.status(500).json({ error: 'Could not retrieve heatmap data' });
+  }
+});
+
+// 🔹 AWS Bedrock AI Chatbot Endpoint
+app.post("/api/bedrock", async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    
+    // Initialize the Bedrock client with explicit credentials
+    const client = new BedrockRuntimeClient({
+      region: "us-west-2", // Hardcode to us-east-1 to match your AWS console
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        sessionToken: process.env.AWS_SESSION_TOKEN, // Include session token
+      },
+    });
+    
+    console.log("AWS Bedrock client initialized with region: us-east-1");
+    console.log("AWS credentials loaded:", 
+              process.env.AWS_ACCESS_KEY_ID ? "Access Key Present" : "Access Key Missing", 
+              process.env.AWS_SECRET_ACCESS_KEY ? "Secret Key Present" : "Secret Key Missing",
+              process.env.AWS_SESSION_TOKEN ? "Session Token Present" : "Session Token Missing");
+    
+    console.log("Sending prompt to AWS Bedrock...");
+    
+    // Prepare the payload for Titan model
+    const payload = {
+      inputText: prompt,
+      textGenerationConfig: {
+        temperature: 0.7,
+        maxTokenCount: 512,
+        stopSequences: []
+      }
+    };
+    
+    // Create the command
+    const command = new InvokeModelCommand({
+      modelId: "amazon.titan-text-express-v1", // Using Express model
+      body: JSON.stringify(payload),
+      contentType: "application/json",
+      accept: "application/json",
+    });
+    
+    // Send request to AWS Bedrock
+    const response = await client.send(command);
+    
+    console.log("Received response from AWS Bedrock");
+    
+    // Use Buffer instead of TextDecoder for better cross-platform compatibility
+    const responseBody = JSON.parse(Buffer.from(response.body).toString('utf8'));
+    
+    // Return the AI response to the frontend
+    res.json({ text: responseBody.results[0].outputText });
+  } catch (error) {
+    console.error("Bedrock error:", error);
+    
+    // Fallback for hackathon demo if AWS Bedrock fails
+    console.log("Using fallback AI response generator");
+    
+    const { prompt } = req.body;
+    const simulatedResponse = simulateBotResponse(prompt);
+    res.json({ text: simulatedResponse });
+  }
+});
+
+// Fallback response function with comprehensive responses
+const simulateBotResponse = (userInput) => {
+  console.log("Using fallback response system for:", userInput);
+  // Convert input to lowercase for easier matching
+  const input = userInput.toLowerCase();
+  
+  // Simple response dictionary for demo purposes
+  if (input.includes('point') && (input.includes('earn') || input.includes('get'))) {
+    return "You can earn points in multiple ways on campus! Each check-in gives you 10 points, attending campus events can earn 20-50 points depending on the event type, and completing weekly challenges can earn 30-100 points. The most efficient strategy is to establish a daily check-in routine at different campus locations while prioritizing special events that offer bonus points.";
+  } 
+  else if (input.includes('redeem') || input.includes('spend') || input.includes('use point')) {
+    return "In the Rewards Shop, you can redeem your points for various items: campus store discounts (250 points for 10% off), event tickets (300-500 points), exclusive experiences like behind-the-scenes tours (600 points), and limited edition University merchandise (750-1000 points). The best value is typically the exclusive experiences, which often cost more if purchased directly.";
+  }
+  else if (input.includes('check in') || input.includes('checking in')) {
+    return "The check-in process is designed to be simple! Just tap the 'Check In Now' button on your dashboard when you're physically at a campus location. Your device's GPS will verify your location, and the system will award points based on where you are. Some locations like the library or student union have bonus points during special hours. Make sure location services are enabled for the best experience.";
+  }
+  else if (input.includes('badge') || input.includes('level')) {
+    return "The badge system rewards consistent engagement with campus activities. Starting at Bronze (0-300 points), you'll progress to Silver (301-750 points), then Gold (751-1500 points), and finally Diamond (1500+ points). Each level increases your point multiplier and unlocks exclusive rewards. Diamond members get first access to special events and limited-edition university merchandise not available to other levels.";
+  }
+  else if (input.includes('multiplier')) {
+    return "The points multiplier is one of the most valuable features of higher badge levels! Bronze members earn the base rate (1.0x), Silver members get a 10% bonus (1.1x), Gold members enjoy a 25% boost (1.25x), and Diamond members receive a generous 30% bonus (1.3x) on all activities. This means a standard 10-point check-in would earn 13 points for a Diamond member - these multipliers really add up over time!";
+  }
+  else if (input.includes('strategy') || input.includes('tip') || input.includes('advice')) {
+    return "For maximizing your rewards, I recommend: 1) Check in daily at different locations (variety gives you more points), 2) Prioritize special events marked with a star icon for bonus points, 3) Complete the weekly challenges which often give high point values for simple tasks, 4) Reach Silver badge as quickly as possible to start earning the point multiplier, and 5) Use your points strategically - saving for larger rewards usually gives better value than small redemptions.";
+  }
+  else if (input.includes('hello') || input.includes('hi') || input.includes('hey')) {
+    return "Hello there! I'm your University of Arizona Rewards assistant. I can help you understand how to earn points, redeem rewards, check in at campus locations, and make the most of your student experience. What would you like to know about today?";
+  }
+  else {
+    return "As your University of Arizona Rewards assistant, I'm here to help you make the most of the campus rewards program. The program is designed to encourage student engagement across campus by offering points for check-ins at various locations, attending events, and participating in campus activities. You can redeem these points for discounts, event tickets, exclusive experiences, and UA merchandise. What specific aspect of the rewards program would you like to learn more about?";
+  }
 };
 
 // 🔹 Test Route
@@ -116,7 +303,7 @@ app.post("/login", verifyToken, async (req, res) => {
 // 🔹 Get Student Points (Protected Route)
 app.get("/points/:email", verifyToken, async (req, res) => {
     const email = req.params.email.trim().toLowerCase();
-    console.log(`Searching for email: ${email}`);
+    console.log('Searching for email: ${email}');
 
     try {
         const snapshot = await db.collection("Students").where("email", "==", email).get();
@@ -133,7 +320,7 @@ app.get("/points/:email", verifyToken, async (req, res) => {
 
         let studentData;
         snapshot.forEach((doc) => {
-            console.log(`Found student: ${doc.id}`, doc.data());
+            console.log('Found student: ${doc.id}', doc.data());
             studentData = doc.data();
         });
 
@@ -345,5 +532,7 @@ app.post('/updatePoints', verifyToken, async (req, res) => {
 // 🔹 Start the Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log('Server running on port ${PORT}');
+    console.log('Heatmap endpoint available at: /api/heatmap');
+    console.log('Bedrock AI endpoint available at: /api/bedrock');
 });

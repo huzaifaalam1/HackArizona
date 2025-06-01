@@ -8,6 +8,16 @@ import {
 import { Link } from "react-router-dom";
 import Chatbot from "../components/Chatbot";
 
+const allMilestones = [
+  { name: "Unranked", minPoints: 0, maxPoints: 50 },
+  { name: "Wildcat Cubs", minPoints: 51, maxPoints: 150 },
+  { name: "Campus Climber", minPoints: 151, maxPoints: 300 },
+  { name: "McKale Minions", minPoints: 301, maxPoints: 600 },
+  { name: "Social Scholar", minPoints: 601, maxPoints: 1000 },
+  { name: "Wildcat Warlord", minPoints: 1001, maxPoints: 1500 },
+  { name: "Master of the Mall", minPoints: 1501, maxPoints: Infinity },
+];
+
 const badgeMultipliers = {
   Bronze: 1.0,
   Silver: 1.1,
@@ -22,6 +32,7 @@ const Dashboard = () => {
   const [multiplier, setMultiplier] = useState(badgeMultipliers["Bronze"]);
   const [activityLog, setActivityLog] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [userMilestones, setUserMilestones] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,6 +41,7 @@ const Dashboard = () => {
         setName(userData.name);
         setPoints(userData.points);
         setBadge(userData.badge || "Bronze");
+        setUserMilestones(userData.milestones || []);
       }
 
       const log = await getRecentActivity();
@@ -123,20 +135,18 @@ const Dashboard = () => {
         </div>
 
         <div className="milestones">
-          <h3>Milestones</h3>
           <ul>
-            <li>
-              🎯 100 Points: "Welcome Aboard" -{" "}
-              {points >= 100 ? "Claimed" : "Upcoming"}
-            </li>
-            <li>
-              🚀 300 Points: "Rising Star" -{" "}
-              {points >= 300 ? "Claimed" : "Upcoming"}
-            </li>
-            <li>
-              🏅 500 Points: "UArizona Achiever" -{" "}
-              {points >= 500 ? "Claimed" : "Upcoming"}
-            </li>
+            {allMilestones.map((milestone) => {
+              const isAchieved = points >= milestone.minPoints;
+              return (
+                <li key={milestone.name}>
+          🎯      {milestone.minPoints} Points: "{milestone.name}" –{" "}
+                  <span style={{ color: isAchieved ? "green" : "gray" }}>
+                    {isAchieved ? "Achieved" : "Upcoming"}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>

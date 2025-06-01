@@ -3,10 +3,20 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-
-import { auth } from "./firebaseConfig";
+import { doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
+import { auth,db } from "./firebaseConfig";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+
+const leagues = [
+  { name: "Unranked", minPoints: 0, maxPoints: 50 },
+  { name: "Wildcat Cubs", minPoints: 51, maxPoints: 150 },
+  { name: "Campus Climber", minPoints: 151, maxPoints: 300 },
+  { name: "McKale Minions", minPoints: 301, maxPoints: 600 },
+  { name: "Social Scholar", minPoints: 601, maxPoints: 1000 },
+  { name: "Wildcat Warlord", minPoints: 1001, maxPoints: 1500 },
+  { name: "Master of the Mall", minPoints: 1501, maxPoints: Infinity },
+];
 
 // 🔹 Sign-Up
 export const signUp = async (email, password, name) => {
@@ -152,6 +162,28 @@ export const getTopLeaderboard = async () => {
     return [];
   }
 };
+
+export async function updateMilestonesIfNeeded(userId, newPoints) {
+  const userRef = doc(db, "users", userId);
+  const userSnap = await getDoc(userRef);
+
+  if (userSnap.exists()) {
+    const userData = userSnap.data();
+    const currentMilestones = userData.milestones || [];
+
+    for (const league of leagues) {
+      if (
+        newPoints >= league.minPoints &&
+        !currentMilestones.includes(league.name) &&
+        league.name !== "Unranked"
+      ) {
+        await updateDoc(userRef, {
+          milestones: arrayUnion(league.name),
+        });
+      }
+    }
+  }
+}
 
 export const checkInForEvent = async () => {
   try {

@@ -1,0 +1,48 @@
+# Node.js dependencies
+node_modules/
+functions/node_modules/
+
+# Build outputs
+build/
+dist/
+
+# Firebase local files and credentials
+.firebase/
+firebase-debug.log
+firebase-debug.*
+firebase-admin.json
+firebase-credentials.json
+service-account.json
+
+# Environment variables
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Testing coverage
+coverage/
+
+# IDEs and editors
+.vscode/
+.idea/
+
+# Optional: Ignore frontend-specific files if not needed
+frontend/node_modules/
+frontend/build/
+frontend/.env
+
+backend/node_modules/
+backend/.env

@@ -43,6 +43,6 @@ coverage/
 frontend/node_modules/
 frontend/build/
 frontend/.env
-
+frontend/src/firebaseConfig.js
 backend/node_modules/
 backend/.env
